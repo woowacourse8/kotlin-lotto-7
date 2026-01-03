@@ -1,4 +1,4 @@
-package lotto
+package lotto.model
 
 class Lotto(private val numbers: List<Int>) {
     init {
@@ -9,5 +9,5 @@ class Lotto(private val numbers: List<Int>) {
         }
     }
 
-    // TODO: 추가 기능 구현
+    fun getNumbers(): List<Int> = numbers
 }
