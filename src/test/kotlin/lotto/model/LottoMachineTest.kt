@@ -1,6 +1,7 @@
 package lotto.model
 
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 
 class LottoMachineTest {
@@ -17,6 +18,13 @@ class LottoMachineTest {
     fun `구입 금액이 1,000원 이하일 때 예외가 발생한다`() {
         assertThrows<IllegalArgumentException> {
             lottoMachine.checkPurchaseAmount("500")
+        }
+    }
+
+    @Test
+    fun `확인된 금액을 넣으면 로또 구매 과정에서 예외가 발생하지 않는다`() {
+        assertDoesNotThrow {
+            lottoMachine.purchaseLotto(2000)
         }
     }
 }
