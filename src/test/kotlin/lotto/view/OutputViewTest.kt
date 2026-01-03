@@ -1,6 +1,6 @@
 package lotto.view
 
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class OutputViewTest {
@@ -14,6 +14,6 @@ class OutputViewTest {
         val actual = OutputView().printLottoNumber(numbers)
 
         // then
-        assertEquals(expected, actual)
+        assertThat(actual).isEqualTo(expected)
     }
 }

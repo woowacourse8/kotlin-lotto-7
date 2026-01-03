@@ -20,6 +20,15 @@ class LottoMachine {
         return lottos
     }
 
+    fun extractWinningNumber(input: String): Lotto {
+        val numbers = input.split(",")
+            .map { s ->
+                s.toIntOrNull() ?: throw IllegalArgumentException("[ERROR] 올바른 숫자가 입력되지 않았습니다.")
+            }
+
+        return Lotto(numbers)
+    }
+
     private fun drawLotto(): Lotto {
         return Lotto(Randoms.pickUniqueNumbersInRange(1, 45, 6))
     }
