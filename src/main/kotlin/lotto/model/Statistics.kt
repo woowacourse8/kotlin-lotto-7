@@ -1,7 +1,7 @@
 package lotto.model
 
 class Statistics(val lottos: List<Lotto>, val winningLotto: WinningLotto) {
-    fun getFinalResult(): List<Int> {
+    fun getResult(): List<Int> {
         val results = mutableListOf(0, 0, 0, 0, 0, 0)
 
         lottos.forEach { lotto ->
@@ -23,7 +23,7 @@ class Statistics(val lottos: List<Lotto>, val winningLotto: WinningLotto) {
         val earning =
             results[1] * LottoResult.FIRST.price + results[2] * LottoResult.SECOND.price + results[3] * LottoResult.THIRD.price + results[4] * LottoResult.FOURTH.price + results[5] * LottoResult.FIFTH.price
 
-        return (earning.toDouble() / amount.toDouble())
+        return (earning.toDouble() / amount.toDouble()) * 100
     }
 
     private fun compareLotto(lotto: Lotto): LottoResult {

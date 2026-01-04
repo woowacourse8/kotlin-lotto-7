@@ -2,6 +2,7 @@ package lotto.controller
 
 import lotto.model.Lotto
 import lotto.model.LottoMachine
+import lotto.model.Statistics
 import lotto.model.WinningLotto
 import lotto.view.InputView
 import lotto.view.OutputView
@@ -10,15 +11,17 @@ class Controller {
     val inputView = InputView()
     val outputView = OutputView()
     val lottoMachine = LottoMachine()
+    var amount = 0
 
     fun run() {
         val lottos = purchaseLotto()
         val winningLotto = enterWinningLotto()
+        showStatistics(lottos, winningLotto)
     }
 
     private fun purchaseLotto(): List<Lotto> {
         outputView.guidePurchaseAmount()
-        val amount = inputPurchaseAmount()
+        amount = inputPurchaseAmount()
         val count = amount / 1000
         println()
 
@@ -42,6 +45,23 @@ class Controller {
         println()
 
         return winningLotto
+    }
+
+    private fun showStatistics(
+        lottos: List<Lotto>,
+        winningLotto: WinningLotto
+        ) {
+        val statistics = Statistics(lottos, winningLotto)
+        val result = statistics.getResult()
+        outputView.guideStatistics()
+        println(Statistics.LottoResult.FIFTH.getResultComment(result[5]))
+        println(Statistics.LottoResult.FOURTH.getResultComment(result[4]))
+        println(Statistics.LottoResult.THIRD.getResultComment(result[3]))
+        println(Statistics.LottoResult.SECOND.getResultComment(result[2]))
+        println(Statistics.LottoResult.FIRST.getResultComment(result[1]))
+
+        val earningRate = statistics.getEarningRate(amount, result)
+        outputView.printEarningRate(earningRate)
     }
 
     private fun inputPurchaseAmount(): Int {
