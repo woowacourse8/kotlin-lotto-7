@@ -8,93 +8,84 @@ import lotto.view.InputView
 import lotto.view.OutputView
 
 class Controller {
-    val inputView = InputView()
-    val outputView = OutputView()
-    val lottoMachine = LottoMachine()
-    var amount = 0
+    private val inputView = InputView()
+    private val outputView = OutputView()
+    private val lottoMachine = LottoMachine()
 
     fun run() {
-        val lottos = purchaseLotto()
-        val winningLotto = enterWinningLotto()
-        showStatistics(lottos, winningLotto)
+        val purchaseAmount = getPurchaseAmount()
+        val lottos = buyLottos(purchaseAmount)
+
+        val winningLotto = getWinningLotto()
+
+        showStatistics(lottos, winningLotto, purchaseAmount)
     }
 
-    private fun purchaseLotto(): List<Lotto> {
-        outputView.guidePurchaseAmount()
-        amount = inputPurchaseAmount()
-        val count = amount / 1000
-        println()
+    // --- 입력 로직 ---
 
-        outputView.guidePurchaseCompleted(count)
-        val lottos = lottoMachine.purchaseLotto(count)
-        lottos.forEach { lotto ->
-            outputView.printLottoNumber(lotto.getNumbers().sorted())
+    private fun getPurchaseAmount(): Int {
+        return retryUntilValid {
+            outputView.guidePurchaseAmount()
+            val input = inputView.input()
+            val amount = input.toIntOrNull() ?: throw IllegalArgumentException("[ERROR] 숫자를 입력해 주세요.")
+            lottoMachine.validatePurchaseAmount(amount)
         }
-        println()
-
-        return lottos
     }
 
-    private fun enterWinningLotto(): WinningLotto {
-        outputView.guideWinningNumbers()
-        val winningNumbers = inputWinningNumbers()
-        println()
+    private fun getWinningLotto(): WinningLotto {
+        val winningNumbers = retryUntilValid {
+            outputView.guideWinningNumbers()
+            val input = inputView.input()
+            parseWinningNumbers(input)
+        }
 
-        outputView.guideBonusNumber()
-        val winningLotto = inputBonusNumber(winningNumbers)
-        println()
+        return retryUntilValid {
+            outputView.guideBonusNumber()
+            val input = inputView.input()
+            val bonusNumber = input.toIntOrNull() ?: throw IllegalArgumentException("[ERROR] 숫자를 입력해 주세요.")
+            WinningLotto(winningNumbers, bonusNumber)
+        }
+    }
 
-        return winningLotto
+    // --- 비즈니스 흐름 ---
+    private fun buyLottos(amount: Int): List<Lotto> {
+        val count = amount / 1000
+        outputView.guidePurchaseCompleted(count)
+
+        val lottos = lottoMachine.purchaseLotto(amount)
+        lottos.forEach { lotto ->
+            outputView.printLottoNumber(lotto.getNumbers())
+        }
+        return lottos
     }
 
     private fun showStatistics(
         lottos: List<Lotto>,
-        winningLotto: WinningLotto
-        ) {
+        winningLotto: WinningLotto,
+        amount: Int
+    ) {
         val statistics = Statistics(lottos, winningLotto)
         val result = statistics.getResult()
-        outputView.guideStatistics()
-        println(Statistics.LottoResult.FIFTH.getResultComment(result[5]))
-        println(Statistics.LottoResult.FOURTH.getResultComment(result[4]))
-        println(Statistics.LottoResult.THIRD.getResultComment(result[3]))
-        println(Statistics.LottoResult.SECOND.getResultComment(result[2]))
-        println(Statistics.LottoResult.FIRST.getResultComment(result[1]))
-
         val earningRate = statistics.getEarningRate(amount, result)
-        outputView.printEarningRate(earningRate)
+
+        outputView.printStatistics(result, earningRate)
     }
 
-    private fun inputPurchaseAmount(): Int {
-        try {
-            val input = inputView.input()
-            return lottoMachine.checkPurchaseAmount(input)
-        } catch (e: IllegalArgumentException) {
-            println(e.message)
-            inputPurchaseAmount()
+    // --- 유틸리티 ---
+    private fun parseWinningNumbers(input: String): Lotto {
+        val numbers = input.split(",").map {
+            it.trim().toIntOrNull() ?: throw IllegalArgumentException("[ERROR] 숫자가 아닌 값이 포함되어 있습니다.")
         }
-        throw IllegalArgumentException("[ERROR] 비정상적인 접근입니다.")
+        return Lotto(numbers)
     }
 
-    private fun inputWinningNumbers(): Lotto {
-        try {
-            val input = inputView.input()
-            return lottoMachine.extractWinningNumber(input)
-        } catch (e: IllegalArgumentException) {
-            println(e.message)
-            inputWinningNumbers()
+    private fun <T> retryUntilValid(action: () -> T): T {
+        while (true) {
+            try {
+                return action()
+            } catch (e: IllegalArgumentException) {
+                println(e.message)
+            }
         }
-        throw IllegalArgumentException("[ERROR] 비정상적인 접근입니다.")
-    }
-
-    private fun inputBonusNumber(winningNumbers: Lotto): WinningLotto {
-        try {
-            val input = inputView.input()
-            val bonusNumber = input.toIntOrNull() ?: throw IllegalArgumentException("[ERROR] 올바른 숫자가 입력되지 않았습니다.")
-            return WinningLotto(winningNumbers, bonusNumber)
-        } catch (e: IllegalArgumentException) {
-            println(e.message)
-            inputBonusNumber(winningNumbers)
-        }
-        throw IllegalArgumentException("[ERROR] 비정상적인 접근입니다.")
     }
 }
